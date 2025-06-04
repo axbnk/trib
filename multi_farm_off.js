@@ -1,6 +1,11 @@
 (async function () {
     const CONTINENTS = ['54', '55'];
     const MAX_DISTANCE = 40;
+    const WAIT_MS = 1000; // Wartezeit pro Dorf, anpassbar
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     function getCoordFromText(text) {
         const match = text.match(/\d{1,3}\|\d{1,3}/);
@@ -33,17 +38,15 @@
         const doc = new DOMParser().parseFromString(html, 'text/html');
 
         const rows = [...doc.querySelectorAll('#combined_table tr')];
-        return rows
-            .map(row => {
-                const link = row.querySelector('a[href*="village="]');
-                const coord = getCoordFromText(row.innerText);
-                if (link && coord) {
-                    const villageId = new URLSearchParams(link.href).get('village');
-                    return { id: villageId, coord };
-                }
-                return null;
-            })
-            .filter(Boolean);
+        return rows.map(row => {
+            const link = row.querySelector('a[href*="village="]');
+            const coord = getCoordFromText(row.innerText);
+            if (link && coord) {
+                const villageId = new URLSearchParams(link.href).get('village');
+                return { id: villageId, coord };
+            }
+            return null;
+        }).filter(Boolean);
     }
 
     async function farmFromVillage(village) {
@@ -62,29 +65,29 @@
             const cont = getContinent(coord);
             const isTarget = CONTINENTS.includes(cont) && dist <= MAX_DISTANCE;
 
-            const btn = row.querySelector('a[class*="farm_icon_a"]');
-            if (isTarget && btn) {
-                let img = new Image();
-                img.src = btn.href;
+            const btn = row.querySelector('a.farm_icon_a');
+            if (btn && isTarget) {
+                btn.click(); // Echtes Klicken des Buttons
                 attackCount++;
             }
         }
 
-        console.log(`🏹 ${attackCount} Angriffe ausgelöst aus ${village.coord}`);
+        console.log(`🏹 ${attackCount} Angriffe aus ${village.coord}`);
         return attackCount;
     }
 
     // Ablauf starten
-    UI.InfoMessage(`⚙ Starte Farming aus aktiver Gruppe...`, 3000);
+    UI.InfoMessage(`⚙ Starte automatisches Farmen aus aktiver Gruppe...`, 4000);
 
     const groupId = getCurrentGroupIdFromStrong();
     const villages = await loadGroupVillages(groupId);
     let total = 0;
 
-    for (const village of villages) {
-        const count = await farmFromVillage(village);
-        total += count;
+    for (const [i, village] of villages.entries()) {
+        console.log(`➡ (${i + 1}/${villages.length}) Bearbeite Dorf ${village.coord}`);
+        total += await farmFromVillage(village);
+        await sleep(WAIT_MS);
     }
 
-    UI.InfoMessage(`✅ ${total} Angriffe aus ${villages.length} Dörfern ausgelöst.`, 6000);
+    UI.InfoMessage(`✅ ${total} Angriffe aus ${villages.length} Dörfern abgeschlossen.`, 6000);
 })();
