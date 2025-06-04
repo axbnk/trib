@@ -8,12 +8,7 @@
         return;
     }
     const [ownX, ownY] = currentCoordMatch[0].split('|').map(Number);
-
     let attackCount = 0;
-
-    function isBarbarianOrBonus(name) {
-        return name.includes('Bonus') || name.includes('Barbar');
-    }
 
     function getContinent(coord) {
         const [x, y] = coord.split('|').map(Number);
@@ -25,23 +20,18 @@
         return Math.hypot(ownX - x, ownY - y);
     }
 
-    // Neue Logik: Suche Zeilen mit "farm_icon_a"
-    document.querySelectorAll('tr').forEach(row => {
-        const coordMatch = row.innerText.match(/\d{1,3}\|\d{1,3}/);
+    document.querySelectorAll('a[class*="farm_icon_a"]').forEach(btn => {
+        const row = btn.closest('tr');
+        const coordMatch = row?.innerText.match(/\d{1,3}\|\d{1,3}/);
         if (!coordMatch) return;
 
         const coord = coordMatch[0];
         const dist = getDistance(coord);
         const cont = getContinent(coord);
-        const name = row.innerText;
 
-        const isTarget = isBarbarianOrBonus(name) &&
-                         continents.includes(cont) &&
-                         dist <= maxDistance;
+        const isTarget = continents.includes(cont) && dist <= maxDistance;
 
-        const btn = row.querySelector('a.farm_icon_a');
-
-        if (isTarget && btn) {
+        if (isTarget) {
             btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
             attackCount++;
         }
