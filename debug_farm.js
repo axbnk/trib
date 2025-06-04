@@ -26,8 +26,9 @@
         return Math.hypot(ownX - x, ownY - y);
     }
 
-    document.querySelectorAll('table.vis tr').forEach(row => {
-        const label = row.querySelector('.quickedit-label');
+document.querySelectorAll('#am_widget_Farm table.vis tr').forEach(row => {
+
+    const label = row.querySelector('.quickedit-label');
         const name = label ? label.textContent.trim() : '[kein Name]';
         const coordMatch = row.innerText.match(/\d+\|\d+/);
         const coord = coordMatch ? coordMatch[0] : '[?]';
