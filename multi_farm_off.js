@@ -19,26 +19,27 @@
         return Math.floor(x / 100) + '' + Math.floor(y / 100);
     }
 
-    // Lade alle Dörfer in der Gruppe "Off"
-    async function loadGroupVillages() {
-        const url = `/game.php?screen=overview_villages&mode=groups`;
-        const html = await (await fetch(url)).text();
+    // Holt die ID der manuellen Gruppe aus dem Dropdown-Menü
+    async function getGroupId() {
+        const html = await (await fetch('/game.php?screen=overview_villages&mode=combined')).text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const groupLinks = [...doc.querySelectorAll('#group_table a')];
-        const targetGroup = groupLinks.find(link => link.textContent.trim() === GROUP_NAME);
-
-        if (!targetGroup) {
+        const options = [...doc.querySelectorAll('select[name="group_id"] option')];
+        const target = options.find(o => o.textContent.trim() === GROUP_NAME);
+        if (!target) {
             UI.ErrorMessage(`❌ Gruppe "${GROUP_NAME}" nicht gefunden.`);
             throw new Error("Gruppe nicht gefunden");
         }
+        return target.value;
+    }
 
-        const groupId = new URLSearchParams(targetGroup.href).get('group');
-        const groupUrl = `/game.php?screen=overview_villages&mode=combined&group=${groupId}`;
-        const groupHtml = await (await fetch(groupUrl)).text();
-        const groupDoc = new DOMParser().parseFromString(groupHtml, 'text/html');
+    // Holt alle Dorf-IDs und Koordinaten aus der Gruppe
+    async function loadGroupVillages(groupId) {
+        const url = `/game.php?screen=overview_villages&mode=combined&group=${groupId}`;
+        const html = await (await fetch(url)).text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
 
-        const rows = [...groupDoc.querySelectorAll('#combined_table tr')];
-        const villages = rows
+        const rows = [...doc.querySelectorAll('#combined_table tr')];
+        return rows
             .map(row => {
                 const link = row.querySelector('a[href*="village="]');
                 const coord = getCoordFromText(row.innerText);
@@ -49,8 +50,6 @@
                 return null;
             })
             .filter(Boolean);
-
-        return villages;
     }
 
     async function farmFromVillage(village) {
@@ -68,8 +67,8 @@
             const dist = getDistance(village.coord, coord);
             const cont = getContinent(coord);
             const isTarget = CONTINENTS.includes(cont) && dist <= MAX_DISTANCE;
-
             const btn = row.querySelector('a[class*="farm_icon_a"]');
+
             if (isTarget && btn) {
                 await fetch(btn.href, { method: 'GET', credentials: 'same-origin' });
                 attackCount++;
@@ -82,7 +81,8 @@
 
     UI.InfoMessage(`⚙ Starte Farming aus Gruppe "${GROUP_NAME}"...`, 3000);
 
-    const villages = await loadGroupVillages();
+    const groupId = await getGroupId();
+    const villages = await loadGroupVillages(groupId);
     let total = 0;
 
     for (const village of villages) {
