@@ -1,5 +1,5 @@
 (async function () {
-    const GROUP_NAME = 'Off';
+    const GROUP_NAME = 'Off'; // Genau wie im Dropdown, ohne Anführungszeichen im Namen!
     const CONTINENTS = ['54', '55'];
     const MAX_DISTANCE = 40;
 
@@ -19,20 +19,22 @@
         return Math.floor(x / 100) + '' + Math.floor(y / 100);
     }
 
-    // Holt die ID der manuellen Gruppe aus dem Dropdown-Menü
-    async function getGroupId() {
-        const html = await (await fetch('/game.php?screen=overview_villages&mode=combined')).text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const options = [...doc.querySelectorAll('select[name="group_id"] option')];
-        const target = options.find(o => o.textContent.trim() === GROUP_NAME);
-        if (!target) {
+    // Holt Gruppen-ID direkt aus dem sichtbaren Dropdown im DOM
+    function getGroupIdFromUI() {
+        const select = document.querySelector('select[name="group_id"]');
+        if (!select) {
+            UI.ErrorMessage("❌ Kein Gruppenselektor gefunden – bitte auf Übersicht 'Kombiniert' gehen.");
+            throw new Error("Kein Gruppenselektor im DOM");
+        }
+        const option = [...select.options].find(o => o.textContent.trim().toLowerCase() === GROUP_NAME.toLowerCase());
+        if (!option) {
             UI.ErrorMessage(`❌ Gruppe "${GROUP_NAME}" nicht gefunden.`);
             throw new Error("Gruppe nicht gefunden");
         }
-        return target.value;
+        return option.value;
     }
 
-    // Holt alle Dorf-IDs und Koordinaten aus der Gruppe
+    // Holt Dorf-IDs & Koordinaten aus Gruppenübersicht
     async function loadGroupVillages(groupId) {
         const url = `/game.php?screen=overview_villages&mode=combined&group=${groupId}`;
         const html = await (await fetch(url)).text();
@@ -67,8 +69,8 @@
             const dist = getDistance(village.coord, coord);
             const cont = getContinent(coord);
             const isTarget = CONTINENTS.includes(cont) && dist <= MAX_DISTANCE;
-            const btn = row.querySelector('a[class*="farm_icon_a"]');
 
+            const btn = row.querySelector('a[class*="farm_icon_a"]');
             if (isTarget && btn) {
                 await fetch(btn.href, { method: 'GET', credentials: 'same-origin' });
                 attackCount++;
@@ -79,9 +81,10 @@
         return attackCount;
     }
 
+    // Ablauf starten
     UI.InfoMessage(`⚙ Starte Farming aus Gruppe "${GROUP_NAME}"...`, 3000);
 
-    const groupId = await getGroupId();
+    const groupId = getGroupIdFromUI();
     const villages = await loadGroupVillages(groupId);
     let total = 0;
 
