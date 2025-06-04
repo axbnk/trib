@@ -1,6 +1,5 @@
 (function () {
     const continents = ['54', '55'];
-    const attackTemplate = 'A';
     const maxDistance = 40;
 
     const currentCoordMatch = document.body.innerText.match(/\d{1,3}\|\d{1,3}/);
@@ -26,25 +25,27 @@
         return Math.hypot(ownX - x, ownY - y);
     }
 
-    document.querySelectorAll('table.vis tr').forEach(row => {
-        const label = row.querySelector('.quickedit-label');
-        if (!label) return;
-
-        const name = label.textContent.trim();
-        const coordMatch = row.innerText.match(/\d+\|\d+/);
+    // Neue Logik: Suche Zeilen mit "farm_icon_a"
+    document.querySelectorAll('tr').forEach(row => {
+        const coordMatch = row.innerText.match(/\d{1,3}\|\d{1,3}/);
         if (!coordMatch) return;
-        const coord = coordMatch[0];
-        const cont = getContinent(coord);
-        const dist = getDistance(coord);
 
-        if (isBarbarianOrBonus(name) && continents.includes(cont) && dist <= maxDistance) {
-            const btn = [...row.querySelectorAll('a')].find(b => b.textContent.trim() === attackTemplate);
-            if (btn) {
-                btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-                attackCount++;
-            }
+        const coord = coordMatch[0];
+        const dist = getDistance(coord);
+        const cont = getContinent(coord);
+        const name = row.innerText;
+
+        const isTarget = isBarbarianOrBonus(name) &&
+                         continents.includes(cont) &&
+                         dist <= maxDistance;
+
+        const btn = row.querySelector('a.farm_icon_a');
+
+        if (isTarget && btn) {
+            btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            attackCount++;
         }
     });
 
-    UI.InfoMessage(`✅ ${attackCount} Angriffe mit Vorlage "${attackTemplate}" auf K${continents.join(', K')} (≤ ${maxDistance} Felder) ausgeführt.`, 4000);
+    UI.InfoMessage(`✅ ${attackCount} Angriffe mit Vorlage A auf K${continents.join(', K')} (≤ ${maxDistance} Felder) ausgeführt.`, 4000);
 })();
