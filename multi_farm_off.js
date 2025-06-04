@@ -18,11 +18,10 @@
         return Math.floor(x / 100) + '' + Math.floor(y / 100);
     }
 
-    // Holt Gruppen-ID aus <strong class="group-menu-item" ...>
     function getCurrentGroupIdFromStrong() {
         const strong = document.querySelector('strong.group-menu-item[data-group-id]');
         if (!strong) {
-            UI.ErrorMessage("❌ Aktive Gruppe nicht erkannt. Bitte 'Kombiniert'-Ansicht öffnen & Gruppe anklicken.");
+            UI.ErrorMessage("❌ Aktive Gruppe nicht erkannt – bitte 'Kombinierte Übersicht' & Gruppe auswählen.");
             throw new Error("Keine aktive Gruppe gefunden");
         }
         return strong.getAttribute('data-group-id');
@@ -65,12 +64,13 @@
 
             const btn = row.querySelector('a[class*="farm_icon_a"]');
             if (isTarget && btn) {
-                await fetch(btn.href, { method: 'GET', credentials: 'same-origin' });
+                let img = new Image();
+                img.src = btn.href;
                 attackCount++;
             }
         }
 
-        console.log(`🏹 ${attackCount} Angriffe ausgeführt aus ${village.coord}`);
+        console.log(`🏹 ${attackCount} Angriffe ausgelöst aus ${village.coord}`);
         return attackCount;
     }
 
@@ -86,5 +86,5 @@
         total += count;
     }
 
-    UI.InfoMessage(`✅ ${total} Angriffe aus ${villages.length} Dörfern ausgeführt.`, 6000);
+    UI.InfoMessage(`✅ ${total} Angriffe aus ${villages.length} Dörfern ausgelöst.`, 6000);
 })();
