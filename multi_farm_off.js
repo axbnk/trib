@@ -1,5 +1,4 @@
 (async function () {
-    const GROUP_NAME = 'Off'; // Nur der erkennbare Teil – egal wo in der Gruppenbezeichnung
     const CONTINENTS = ['54', '55'];
     const MAX_DISTANCE = 40;
 
@@ -19,24 +18,16 @@
         return Math.floor(x / 100) + '' + Math.floor(y / 100);
     }
 
-    // Holt Gruppen-ID aus dem sichtbaren Dropdown (nicht Fetch!)
-    function getGroupIdFromUI() {
-        const select = document.querySelector('select[name="group_id"]');
-        if (!select) {
-            UI.ErrorMessage("❌ Kein Gruppenselektor gefunden – bitte auf 'Kombinierte Übersicht' gehen.");
-            throw new Error("Kein Gruppenselektor im DOM");
+    // Holt Gruppen-ID aus <strong class="group-menu-item" ...>
+    function getCurrentGroupIdFromStrong() {
+        const strong = document.querySelector('strong.group-menu-item[data-group-id]');
+        if (!strong) {
+            UI.ErrorMessage("❌ Aktive Gruppe nicht erkannt. Bitte 'Kombiniert'-Ansicht öffnen & Gruppe anklicken.");
+            throw new Error("Keine aktive Gruppe gefunden");
         }
-        const option = [...select.options].find(o =>
-            o.textContent.toLowerCase().includes(GROUP_NAME.toLowerCase())
-        );
-        if (!option) {
-            UI.ErrorMessage(`❌ Keine Gruppe mit "${GROUP_NAME}" im Namen gefunden.`);
-            throw new Error("Gruppe nicht gefunden");
-        }
-        return option.value;
+        return strong.getAttribute('data-group-id');
     }
 
-    // Holt Dorf-IDs & Koordinaten aus Gruppenübersicht
     async function loadGroupVillages(groupId) {
         const url = `/game.php?screen=overview_villages&mode=combined&group=${groupId}`;
         const html = await (await fetch(url)).text();
@@ -84,9 +75,9 @@
     }
 
     // Ablauf starten
-    UI.InfoMessage(`⚙ Starte Farming aus Gruppe mit "${GROUP_NAME}"...`, 3000);
+    UI.InfoMessage(`⚙ Starte Farming aus aktiver Gruppe...`, 3000);
 
-    const groupId = getGroupIdFromUI();
+    const groupId = getCurrentGroupIdFromStrong();
     const villages = await loadGroupVillages(groupId);
     let total = 0;
 
