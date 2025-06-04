@@ -1,5 +1,5 @@
 (async function () {
-    const GROUP_NAME = 'Off'; // Genau wie im Dropdown, ohne Anführungszeichen im Namen!
+    const GROUP_NAME = 'Off'; // Nur der erkennbare Teil – egal wo in der Gruppenbezeichnung
     const CONTINENTS = ['54', '55'];
     const MAX_DISTANCE = 40;
 
@@ -19,16 +19,18 @@
         return Math.floor(x / 100) + '' + Math.floor(y / 100);
     }
 
-    // Holt Gruppen-ID direkt aus dem sichtbaren Dropdown im DOM
+    // Holt Gruppen-ID aus dem sichtbaren Dropdown (nicht Fetch!)
     function getGroupIdFromUI() {
         const select = document.querySelector('select[name="group_id"]');
         if (!select) {
-            UI.ErrorMessage("❌ Kein Gruppenselektor gefunden – bitte auf Übersicht 'Kombiniert' gehen.");
+            UI.ErrorMessage("❌ Kein Gruppenselektor gefunden – bitte auf 'Kombinierte Übersicht' gehen.");
             throw new Error("Kein Gruppenselektor im DOM");
         }
-        const option = [...select.options].find(o => o.textContent.trim().toLowerCase() === GROUP_NAME.toLowerCase());
+        const option = [...select.options].find(o =>
+            o.textContent.toLowerCase().includes(GROUP_NAME.toLowerCase())
+        );
         if (!option) {
-            UI.ErrorMessage(`❌ Gruppe "${GROUP_NAME}" nicht gefunden.`);
+            UI.ErrorMessage(`❌ Keine Gruppe mit "${GROUP_NAME}" im Namen gefunden.`);
             throw new Error("Gruppe nicht gefunden");
         }
         return option.value;
@@ -82,7 +84,7 @@
     }
 
     // Ablauf starten
-    UI.InfoMessage(`⚙ Starte Farming aus Gruppe "${GROUP_NAME}"...`, 3000);
+    UI.InfoMessage(`⚙ Starte Farming aus Gruppe mit "${GROUP_NAME}"...`, 3000);
 
     const groupId = getGroupIdFromUI();
     const villages = await loadGroupVillages(groupId);
