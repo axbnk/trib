@@ -1,5 +1,5 @@
 (async function () {
-    const GROUP_NAME = "Off";
+    const GROUP_NAME = 'Off';
     const CONTINENTS = ['54', '55'];
     const MAX_DISTANCE = 40;
 
