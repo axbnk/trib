@@ -3,7 +3,7 @@
     const attackTemplate = 'A';
     const maxDistance = 40;
 
-    const currentCoordMatch = document.querySelector('#menu_row2 .village_anchor a')?.textContent.match(/\d+\|\d+/);
+    const currentCoordMatch = document.body.innerText.match(/\d{1,3}\|\d{1,3}/);
     if (!currentCoordMatch) {
         UI.ErrorMessage("❌ Konnte aktuelle Dorfkoordinaten nicht finden.");
         return;
