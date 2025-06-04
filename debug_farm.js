@@ -26,7 +26,7 @@
         return Math.hypot(ownX - x, ownY - y);
     }
 
-document.querySelectorAll('#am_widget_Farm table.vis tr').forEach(row => {
+document.querySelectorAll('tr:has(a[href*="am_farm"])').forEach(row => {
 
     const label = row.querySelector('.quickedit-label');
         const name = label ? label.textContent.trim() : '[kein Name]';
